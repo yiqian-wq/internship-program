@@ -1,0 +1,39 @@
+# 课程环境一键拉起：MySQL 8（业务库+数仓） + Elasticsearch 8（埋点明细）
+# 用法（Windows PowerShell / macOS 终端相同）：
+#   cd gamedw/deploy
+#   docker compose up -d
+# 首次拉取镜像约 1~2 GB，耐心等待；查看状态：docker compose ps
+# 低配电脑（8GB 内存）：把 ES_JAVA_OPTS 改成 -Xms512m -Xmx512m
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: gamedw-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: gamedw
+      LANG: C.UTF-8
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pgamedw"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  elasticsearch:
+    image: elasticsearch:8.15.0
+    container_name: gamedw-es
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+
+volumes:
+  mysql-data:
+  es-data:

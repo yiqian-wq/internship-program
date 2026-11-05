@@ -1,0 +1,25 @@
+# 迷你评测集（种子版，20 题）：课程阶段 6 学生要扩到 120 题
+# 措辞参考真实交付物需求清单（《业务背景》2.3）
+cases:
+  # 教学点：这句真实问法存在口径歧义（按天看还是合计？）——完整方案应触发澄清反问，
+  # 规则版默认"按渠道合计"，作为消融实验的对照素材（阶段6）
+  - {question: 上个月各渠道的DAU和流水, expect: {dims: [渠道], measures: [dau, revenue]}}
+  - {question: 近7天每个平台的新增用户数, expect: {dims: [平台], measures: [新增用户]}}
+  - {question: 抖音上个月每天的DAU和流水, expect: {dims: [日期], measures: [dau, revenue], filter_dims: [渠道]}}
+  - {question: 近30天TapTap的DAU趋势, expect: {dims: [日期], measures: [dau], filter_dims: [渠道]}}
+  - {question: 上周各渠道的活跃用户数, expect: {dims: [渠道], measures: [dau]}}
+  - {question: 2026年9月的流水, expect: {measures: [revenue]}}
+  - {question: 昨天有多少新增用户, expect: {measures: [新增用户]}}
+  - {question: 近7天iOS的付费用户数, expect: {dims: [], measures: [pay_users], filter_dims: [平台]}}
+  - {question: 上个月B站的在线时长, expect: {dims: [], measures: [online_minutes], filter_dims: [渠道]}}
+  - {question: 春节期间每天的活跃用户, expect: {dims: [日期], measures: [dau]}}
+  - {question: 上周新增用户的次日留存, expect: {template: 新增次日留存}}
+  - {question: 查一下次留, expect: {template: 新增次日留存}}
+  - {question: 各渠道LTV怎么样, expect: {template: 渠道LTV}}
+  - {question: 渠道的用户价值对比, expect: {template: 渠道LTV}}
+  - {question: 近7天每个渠道的付费用户和流水, expect: {dims: [渠道], measures: [pay_users, revenue]}}
+  - {question: 9月每个区服的新增, expect: {dims: [区服], measures: [新增用户]}}
+  - {question: 昨天安卓和iOS各自的DAU, expect: {dims: [], measures: [dau], filter_dims: [平台]}}
+  - {question: 上个月的在线时长按天看, expect: {dims: [日期], measures: [online_minutes]}}
+  - {question: 2026-09-01到2026-09-30抖音的流水, expect: {dims: [], measures: [revenue], filter_dims: [渠道]}}
+  - {question: 最近14天每日新增和付费人数, expect: {dims: [日期], measures: [新增用户, pay_users]}}

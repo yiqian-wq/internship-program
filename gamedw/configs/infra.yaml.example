@@ -1,0 +1,24 @@
+# ============================================================
+# 基础设施连接配置（模板）
+# 优先级：环境变量 > 本文件
+#   GAMEDW_MYSQL_HOST / GAMEDW_MYSQL_PORT / GAMEDW_MYSQL_USER / GAMEDW_MYSQL_PASSWORD
+#   GAMEDW_ES_URL
+#   LLM_API_KEY / LLM_BASE_URL / LLM_MODEL
+#
+# 使用方式：复制本文件为 infra.yaml，填入真实密码后启动。
+#   copy infra.yaml.example infra.yaml
+# ============================================================
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "YOUR_MYSQL_PASSWORD_HERE"
+
+elasticsearch:
+  url: http://127.0.0.1:9200
+
+llm:
+  api_key: "YOUR_LLM_API_KEY_HERE"         # 例如 DeepSeek / OpenAI / 兼容接口
+  base_url: "https://api.deepseek.com/v1"  # 改成你用的服务地址
+  model: "deepseek-chat"                    # 改成你用的模型名

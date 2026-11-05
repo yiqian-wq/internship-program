@@ -1,0 +1,43 @@
+# ===== 虚拟环境 =====
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== 敏感配置（包含真实密码/Key） =====
+gamedw/configs/infra.yaml
+!gamedw/configs/infra.yaml.example
+
+# ===== 所有原生 md 文件（docs/、各模块 README） =====
+# 只保留根目录 README.md（由 gitignore 反向豁免）
+*.md
+!README.md
+
+# ===== IDE / OS =====
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ===== Elasticsearch 数据（本地跑的） =====
+elasticsearch-*/data/
+elasticsearch-*/logs/
+
+# ===== 临时测试脚本 =====
+_test*.py
+_debug*.py
+_demo*.py
+*.tmp
+
+# ===== Python 包构建 =====
+dist/
+build/
+*.egg-info/
+
+# ===== pytest =====
+.pytest_cache/
+
+# ===== 日志 =====
+*.log

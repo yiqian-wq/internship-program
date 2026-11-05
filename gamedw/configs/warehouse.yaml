@@ -1,0 +1,200 @@
+# ============================================================
+# 模拟数仓配置：《苍穹物语》—— 某小型游戏公司（30人）的放置卡牌手游
+# 真实场景对应关系：
+#   业务库(MySQL) + 客户端埋点  --同步-->  ods 层
+#   数仓跑批(SQL 脚本 + crontab)  -->     dwd / dws / ads 层
+# ============================================================
+
+meta:
+  company: 某小型游戏公司（约30人，1个立项项目）
+  game_name: 苍穹物语
+  game_type: 放置卡牌RPG（移动端，混合变现 = 内购 + 激励视频）
+  launch_date: "2025-09-01"        # 公测上线
+  data_start: "2025-09-01"
+  data_end: "2026-10-16"           # T+1 数仓：数据截至昨天（今天 2026-10-17）
+  timezone: Asia/Shanghai
+
+seed: 20260917
+
+# ---------- 用户获取 ----------
+acquisition:
+  launch_spike: [13000, 7200, 4300, 2900, 2100, 1700]  # 公测前6天自然爆发
+  organic_initial: 1500      # 公测一周后的日均自然新增
+  organic_base: 460          # 长期自然新增基底
+  organic_decay_days: 60     # 衰减周期
+  new_weekend_boost: {sat: 1.20, sun: 1.25}
+  dau_weekend_boost: {sat: 1.06, sun: 1.08}
+
+# ---------- 留存曲线（注册后第 N 天的活跃概率基数，分段线性插值）----------
+retention_curve: {0: 1.0, 1: 0.42, 2: 0.31, 3: 0.27, 7: 0.20, 14: 0.155, 30: 0.115, 60: 0.085, 90: 0.072, 180: 0.058, 365: 0.048, 800: 0.040}
+user_profile:
+  quality_gamma: {shape: 2.0, scale: 0.5}   # 个体活跃质量系数
+  core_user_share: 0.12                      # 核心玩家比例（质量再翻倍）
+  churn_window_days: 13                      # 连续不活跃超过该天数视为流失
+  winback_prob: 0.0045                       # 流失用户每日回流概率
+  activity_pref_range: [0.8, 1.4]            # 个体登录频次偏好
+
+# ---------- 渠道 ----------
+channels:
+  - {id: 1001, name: 官方iOS,   type: 官方, share: 0.14, quality: 1.15, pay_quality: 1.15, refund_rate: 0.022}
+  - {id: 1002, name: 官方安卓,  type: 官方, share: 0.13, quality: 1.05, pay_quality: 1.00, refund_rate: 0.006}
+  - {id: 2001, name: TapTap,   type: 联运, share: 0.12, quality: 1.25, pay_quality: 1.10, refund_rate: 0.008}
+  - {id: 2002, name: B站,      type: 联运, share: 0.10, quality: 1.18, pay_quality: 1.05, refund_rate: 0.008}
+  - {id: 3001, name: 华为,     type: 联运, share: 0.16, quality: 0.98, pay_quality: 0.95, refund_rate: 0.004}
+  - {id: 3002, name: 小米,     type: 联运, share: 0.13, quality: 0.96, pay_quality: 0.95, refund_rate: 0.004}
+  - {id: 3003, name: 应用宝,   type: 联运, share: 0.09, quality: 0.92, pay_quality: 0.90, refund_rate: 0.005}
+  - {id: 4001, name: 抖音买量,  type: 买量, share: 0.13, quality: 0.72, pay_quality: 0.70, refund_rate: 0.010}
+  - {id: 9999, name: 测试渠道,  type: 测试, share: 0.0,  quality: 1.00, pay_quality: 1.00, refund_rate: 0.0}
+
+# ---------- 服务器（区服）----------
+servers:
+  - {id: 1,  name: 苍穹之巅, open: "2025-09-01"}
+  - {id: 2,  name: 星辉湖畔, open: "2025-09-01"}
+  - {id: 3,  name: 流云渡口, open: "2025-09-01"}
+  - {id: 4,  name: 落霞孤鹜, open: "2025-09-01"}
+  - {id: 5,  name: 踏雪寻梅, open: "2025-09-01"}
+  - {id: 6,  name: 听风小筑, open: "2025-09-08"}
+  - {id: 7,  name: 醉月楼,   open: "2025-09-22"}
+  - {id: 8,  name: 凌霄殿,   open: "2025-10-09"}
+  - {id: 9,  name: 寒鸦岭,   open: "2025-10-23"}
+  - {id: 10, name: 孤鸿海,   open: "2025-11-06"}
+  - {id: 11, name: 青衫巷,   open: "2025-11-20"}
+  - {id: 12, name: 墨染江山, open: "2025-12-04"}
+  - {id: 13, name: 白露洲,   open: "2026-01-08"}
+  - {id: 14, name: 新春庙会, open: "2026-02-13"}
+  - {id: 15, name: 春溪花市, open: "2026-03-21"}
+  - {id: 16, name: 初夏荷风, open: "2026-05-15"}
+  - {id: 17, name: 夏日祭典, open: "2026-07-21"}
+  - {id: 18, name: 周年庆殿, open: "2026-09-05"}
+server_merge:                       # 合服：小公司常态操作
+  - {date: "2026-06-12", servers: [6, 7, 8], group: "M1"}
+
+# ---------- 商品（内购）----------
+products:
+  - {id: P001, name: 首充礼包,   price: 6,   type: 首充}
+  - {id: P002, name: 月卡,       price: 30,  type: 月卡}
+  - {id: P003, name: 英雄战令,   price: 68,  type: 战令}
+  - {id: P004, name: 成长基金,   price: 98,  type: 基金}
+  - {id: P101, name: 每日特惠,   price: 6,   type: 礼包}
+  - {id: P102, name: 周礼包,     price: 30,  type: 礼包}
+  - {id: P103, name: 超值礼包,   price: 68,  type: 礼包}
+  - {id: P104, name: 豪华礼包,   price: 128, type: 礼包}
+  - {id: P105, name: 至尊礼包,   price: 198, type: 礼包}
+  - {id: P106, name: 限定礼包,   price: 328, type: 礼包}
+  - {id: P201, name: 钻石x60,    price: 6,   type: 直充}
+  - {id: P202, name: 钻石x300,   price: 30,  type: 直充}
+  - {id: P203, name: 钻石x980,   price: 98,  type: 直充}
+  - {id: P204, name: 钻石x1980,  price: 198, type: 直充}
+  - {id: P205, name: 钻石x3280,  price: 328, type: 直充}
+  - {id: P206, name: 钻石x6480,  price: 648, type: 直充}
+  - {id: P999, name: 测试充值,   price: 648, type: 测试}
+product_weights_normal:             # 老付费用户的下单结构
+  {P002: 0.20, P003: 0.11, P101: 0.14, P102: 0.11, P103: 0.07, P104: 0.045,
+   P105: 0.028, P106: 0.016, P201: 0.09, P202: 0.06, P203: 0.032, P204: 0.018,
+   P205: 0.010, P206: 0.006, P004: 0.014}
+product_weights_whale:              # 大R的下单结构（大额占比高）
+  {P002: 0.08, P003: 0.07, P101: 0.05, P102: 0.06, P103: 0.08, P104: 0.09,
+   P105: 0.08, P106: 0.06, P201: 0.03, P202: 0.04, P203: 0.07, P204: 0.09,
+   P205: 0.10, P206: 0.08, P004: 0.02}
+first_pay_weights: {P001: 0.60, P002: 0.28, P003: 0.12}
+payment:
+  active_scale: 0.75               # 活跃用户当日付费概率折减
+  whale_threshold: 0.15            # payer_prop 高于该值视为大R
+  whale_extra_order_prob: 0.35
+  pay_hour_range: [10, 23]
+
+# ---------- 道具/货币 ----------
+items:
+  - {id: 30001, name: 钻石,     type: 货币}
+  - {id: 30002, name: 金币,     type: 货币}
+  - {id: 30003, name: 召唤券,   type: 道具}
+  - {id: 40001, name: 英雄碎片, type: 道具}
+  - {id: 40002, name: 装备宝箱, type: 道具}
+  - {id: 50001, name: 体力,     type: 资源}
+property_flow:
+  idle_claim_prob: 0.45            # 挂机结算领取
+  idle_claim_lambda: 1.2
+  gacha_prob: 0.32                 # 当日抽卡
+  gacha_lambda: 2.5
+  gacha_lambda_whale_mult: 6
+  shop_prob: 0.12                  # 商店购买（扣钻石）
+  level_reward_prob: 0.30          # 关卡奖励
+  activity_reward_prob: 0.30       # 活动期间领取
+
+# ---------- 激励视频广告 ----------
+ad_watch:
+  base_prob: 0.30
+  lambda: 1.6
+  slots: {ad_energy: 0.40, ad_signin: 0.35, ad_chest: 0.15, ad_gacha: 0.10}
+
+# ---------- 会话/登录 ----------
+session:
+  n_logins_cum: [0.45, 0.75, 0.90, 0.97, 1.0]   # 1/2/3/4/5 次
+  duration_mean_min: 22
+  new_user_duration_min: 12
+  duration_sigma: 0.75
+  duration_cap_min: 360
+  login_fail_rate: 0.02
+  logout_missing_rate: 0.01
+  time_mix:                                        # (起时, 止时, 权重)
+    - [7, 9, 0.14]
+    - [12, 14, 0.18]
+    - [18, 20, 0.24]
+    - [20, 23, 0.36]
+    - [23, 25, 0.08]
+
+# ---------- 版本轨迹 ----------
+versions:
+  - {version: 1.0.0, date: "2025-09-01", note: 公测上线}
+  - {version: 1.0.2, date: "2025-09-15", note: 修复与优化}
+  - {version: 1.1.0, date: "2025-10-20", note: 新玩法「深渊试炼」}
+  - {version: 1.2.0, date: "2025-12-15", note: 冬季版本+新英雄}
+  - {version: 1.2.1, date: "2026-01-19", note: 春节预热优化}
+  - {version: 1.3.0, date: "2026-04-08", note: 春季版本+公会战}
+  - {version: 1.4.0, date: "2026-06-10", note: 夏季前置版本}
+  - {version: 2.0.0, date: "2026-08-01", note: 大版本·主界面重做}
+  - {version: 2.1.0, date: "2026-09-24", note: 秋季版本（含新手引导bug）}
+  - {version: 2.1.1, date: "2026-10-02", note: 紧急修复新手引导}
+
+# ---------- 活动轨迹 ----------
+activities:
+  - {id: A001, name: 公测开服庆典,     start: "2025-09-01", end: "2025-09-14", type: 开服}
+  - {id: A002, name: 深渊试炼开启,     start: "2025-10-20", end: "2025-11-03", type: 版本}
+  - {id: A003, name: 双旦狂欢,         start: "2025-12-20", end: "2026-01-03", type: 节日}
+  - {id: A004, name: 新春祭·年兽来袭,  start: "2026-02-14", end: "2026-03-02", type: 春节}
+  - {id: A005, name: 公会战S1,         start: "2026-04-08", end: "2026-04-22", type: 版本}
+  - {id: A006, name: 五一回馈,         start: "2026-05-01", end: "2026-05-07", type: 节日}
+  - {id: A007, name: 夏日祭·海滩派对,  start: "2026-07-06", end: "2026-08-30", type: 暑期}
+  - {id: A008, name: 周年庆典,         start: "2026-09-01", end: "2026-09-14", type: 周年}
+  - {id: A009, name: 国庆登录礼,       start: "2026-10-01", end: "2026-10-08", type: 节日}
+
+# ---------- 业务剧本：分日倍率（决定数据里的"故事"）----------
+boosts:                        # 作用于活跃/新增/付费/广告的日内倍率
+  - {window: ["2025-10-01", "2025-10-07"], dau: 1.25, new: 1.40, pay: 1.30, ad: 1.10, label: 国庆25}
+  - {window: ["2025-12-20", "2026-01-03"], dau: 1.20, new: 1.30, pay: 1.35, ad: 1.10, label: 双旦}
+  - {window: ["2026-02-14", "2026-03-02"], dau: 1.65, new: 2.30, pay: 1.90, ad: 1.20, label: 春节}
+  - {window: ["2026-04-08", "2026-04-22"], dau: 1.15, new: 1.25, pay: 1.30, ad: 1.00, label: 公会战}
+  - {window: ["2026-05-01", "2026-05-07"], dau: 1.15, new: 1.20, pay: 1.20, ad: 1.05, label: 五一}
+  - {window: ["2026-07-06", "2026-08-30"], dau: 1.35, new: 1.60, pay: 1.20, ad: 1.80, label: 暑期}
+  - {window: ["2026-09-01", "2026-09-14"], dau: 1.30, new: 1.50, pay: 1.60, ad: 1.20, label: 周年庆}
+  - {window: ["2026-10-01", "2026-10-08"], dau: 1.20, new: 1.30, pay: 1.25, ad: 1.10, label: 国庆26}
+
+buy_campaigns:                 # 买量投放：抬新增、改变渠道结构（抖音占比飙升）
+  - {window: ["2025-11-05", "2025-11-18"], new_mult: 2.6, douyin_share: 0.58, label: 双11买量}
+  - {window: ["2026-03-20", "2026-04-02"], new_mult: 2.2, douyin_share: 0.55, label: 春季买量}
+  - {window: ["2026-07-20", "2026-08-05"], new_mult: 2.0, douyin_share: 0.52, label: 暑期买量}
+
+incident:                      # v2.1 新手引导 bug 事故（近期热点分析素材）
+  window: ["2026-09-24", "2026-10-01"]
+  new_retention_mult: 0.72     # 新用户（注册≤3天）次留概率打折
+  dau_mult: 0.93               # 全体活跃略降
+  label: v2.1新手引导事故
+
+# ---------- 脏数据（ODS 层保留，由 DWD 清洗）----------
+dirty:
+  test_accounts: 260
+  test_daily_active_prob: 0.35
+  login_no_channel_rate: 0.003      # channel_id = -1（缺失哨兵值）
+  pay_dup: {window: ["2026-06-18", "2026-06-19"], rate: 0.008}   # 同步重复
+  pay_outlier: {date: "2026-03-03", count: 3, amount: 999999}    # 异常金额
+  frozen_account_rate: 0.003

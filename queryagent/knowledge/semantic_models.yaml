@@ -1,0 +1,78 @@
+# 语义模型：Agent 与数仓之间的"翻译字典"（对齐 Cortex Analyst semantic model / Wren MDL /
+# SuperSonic Headless BI；真实公司 MeasureConf/DataSetConf 的 YAML 形态）
+# 口径单一出处：改口径=改这里+跑评测回归
+
+datasets:
+  - name: role_active_daily
+    table: db_dw_dws.t_role_active_di
+    description: 角色×日活跃宽表，一行=一个角色当天活跃
+    dimensions:
+      - name: 渠道
+        expr: cid
+        type: int
+        synonyms: [渠道, 渠道号, 投放渠道, 来源, 量级来源]
+        related: {column: channel_name, table: db_adm.t_sy_channel, join_on: cid}
+        values:
+          - {id: 1001, label: 官方iOS, aliases: [官方ios, ios, 苹果, appstore]}
+          - {id: 1002, label: 官方安卓, aliases: [官方安卓, 官方android, android]}
+          - {id: 2001, label: TapTap, aliases: [taptap, tap]}
+          - {id: 2002, label: B站, aliases: [b站, bilibili, B站, 哔哩哔哩]}
+          - {id: 3001, label: 华为, aliases: [华为, huawei]}
+          - {id: 3002, label: 小米, aliases: [小米, xiaomi]}
+          - {id: 3003, label: 应用宝, aliases: [应用宝, yingyongbao]}
+          - {id: 4001, label: 抖音买量, aliases: [抖音, 抖音买量, douyin, 巨量]}
+      - name: 日期
+        expr: store_day
+        type: date_int
+        synonyms: [日期, 每日, 按天, 每天, 分天, 趋势]
+      - name: 平台
+        expr: pid
+        type: int
+        synonyms: [平台, 系统, 操作系统]
+        values:
+          - {id: 1, label: iOS, aliases: [ios, 苹果, iphone]}
+          - {id: 2, label: 安卓, aliases: [安卓, android, 安卓端]}
+      - name: 区服
+        expr: server_id
+        type: int
+        synonyms: [区服, 服, 服务器]
+        lookup: db_adm.t_sy_server
+    measures:
+      - name: dau
+        agg: DISTINCTCOUNT
+        expr: role_id
+        description: 日活跃角色数（去重）
+        synonyms: [dau, 日活, 活跃用户, 活跃用户数, 活跃, 活跃角色]
+      - name: revenue
+        agg: LONGSUM
+        expr: pay_amount
+        description: 当日流水（已剔除退款，渠道分成前）
+        synonyms: [流水, 收入, 充值金额, 营收, 付费金额]
+      - name: 新增用户
+        agg: COUNT
+        expr: role_id
+        filter: is_new_role
+        description: 当日首次进入游戏的角色数
+        synonyms: [新增, 新增用户, 新用户, 新增角色, 新增人数]
+      - name: pay_users
+        agg: COUNT
+        expr: role_id
+        filter: pay_cnt > 0
+        description: 当日有付费行为的角色数
+        synonyms: [付费用户, 付费人数, 付费用户数]
+      - name: online_minutes
+        agg: LONGSUM
+        expr: online_minutes
+        description: 在线时长（分钟）
+        synonyms: [在线时长, 时长, 游戏时长]
+
+metric_templates:
+  - name: 新增次日留存
+    template_id: retention_d1
+    description: 某段时间新增用户在 D+1 仍活跃的比例（点值口径）
+    synonyms: [次留, 次日留存, 隔日留存, next day retention]
+    params: [{name: 时间范围, type: date_range}]
+  - name: 渠道LTV
+    template_id: channel_ltv
+    description: 各渠道注册 cohort 的 LTV 与留存（读 ADS 周cohort 表）
+    synonyms: [ltv, 用户价值, 渠道价值, 买量回收]

@@ -1,0 +1,20 @@
+# few-shot 示例库（Vanna 训练数据思想）：命中相似问题可直接复用/参考。
+examples:
+  - question: 上个月各渠道的DAU和流水
+    dsl:
+      dataset: role_active_daily
+      dimensions: [渠道, 日期]
+      aggregations: [{type: DISTINCTCOUNT, measure: dau}, {type: LONGSUM, measure: revenue}]
+      order: {fields: [日期], desc: false}
+  - question: 近7天每个平台的新增用户数
+    dsl:
+      dataset: role_active_daily
+      dimensions: [平台]
+      aggregations: [{type: COUNT, measure: 新增用户}]
+      order: {fields: [新增用户], desc: true}
+  - question: 抖音的付费用户有多少
+    dsl:
+      dataset: role_active_daily
+      dimensions: []
+      aggregations: [{type: COUNT, measure: pay_users}]
+      filter: {type: $EQ, dimension: 渠道, value: 4001}
